@@ -1,0 +1,17 @@
+{
+  "sunnyportal": {
+    "email": "me@mydomain.com",
+    "password": "secret"
+  },
+  "mqtt": {
+    "host": "localhost",
+    "port": 1883,
+    "username": "user",
+    "password": "pass",
+    "topic": "tele/sunnyportal/DATA"
+  },
+  "period": {
+    "min": 3500,
+    "max": 3700
+  }
+}
