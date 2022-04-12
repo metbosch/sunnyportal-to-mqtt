@@ -6,6 +6,7 @@ from paho.mqtt import client as mqtt_client
 import argparse
 import sunnyportal.client, sunnyportal.responses
 import json
+import random
 import time
 
 def main():
@@ -19,12 +20,14 @@ def main():
       try:
         for plant in client_sp.get_plants():
           data = plant.last_data_exact(date.today() + timedelta(days=1))
-          print(f"Total production accumulated:\n  plant={plant.name}\n  wh={data.hour.absolute}")
-          client_mqtt.publish(config['mqtt']['topic'], data.hour.absolute)
+          print(f"{datetime.now()}: wh={data.hour.absolute} plant={plant.name}")
+          data_mqtt = '{"plant": "' + plant.name + '", "prod_wh": ' + str(data.hour.absolute) + '}'
+          client_mqtt.publish(config['mqtt']['topic'], data_mqtt)
       except Exception as e:
-        print("An exception happened: " + e)
+        print("An exception happened: " + str(e))
         exit(1)
-      time.sleep(300)
+      seconds_delay = random.randrange(config['period']['min'], config['period']['max'])
+      time.sleep(seconds_delay)
 
 if __name__ == "__main__":
   main()
