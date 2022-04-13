@@ -20,9 +20,11 @@ def main():
       client_sp = sunnyportal.client.Client(config['sunnyportal']['email'], config['sunnyportal']['password'])
       for plant in client_sp.get_plants():
         data = plant.last_data_exact(date.today() + timedelta(days=1))
-        print(f"{datetime.now()}: wh={data.hour.absolute} plant={plant.name}")
-        data_mqtt = '{"plant": "' + plant.name + '", "prod_wh": ' + str(data.hour.absolute) + '}'
-        client_mqtt.publish(config['mqtt']['topic'], data_mqtt)
+        wh = data.hour.absolute if not data.hour is None else None
+        print(f"{datetime.now()}: wh={wh} plant={plant.name}")
+        if not wh is None:
+          data_mqtt = '{"plant": "' + plant.name + '", "prod_wh": ' + str(wh) + '}'
+          client_mqtt.publish(config['mqtt']['topic'], data_mqtt)
       seconds_delay = random.randrange(config['period']['min'], config['period']['max'])
       time.sleep(seconds_delay)
 
