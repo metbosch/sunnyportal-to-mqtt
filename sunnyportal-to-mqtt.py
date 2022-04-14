@@ -10,6 +10,7 @@ import random
 import time
 
 def main():
+  print(f"{datetime.now()}: Starting sunnyportal-to-mqtt")
   with open("config.json", 'r') as config_file:
     config = json.load(config_file)
     client_mqtt = mqtt_client.Client()
@@ -17,16 +18,19 @@ def main():
     client_mqtt.connect(config['mqtt']['host'], config['mqtt']['port'])
     while True:
       print(f"{datetime.now()}: Starting sunnyportal information retrievement")
-      client_sp = sunnyportal.client.Client(config['sunnyportal']['email'], config['sunnyportal']['password'])
-      for plant in client_sp.get_plants():
-        data = plant.last_data_exact(date.today() + timedelta(days=1))
-        wh = data.hour.absolute if not data.hour is None else None
-        print(f"{datetime.now()}: wh={wh} plant={plant.name}")
-        if not wh is None:
-          data_mqtt = '{"plant": "' + plant.name + '", "prod_wh": ' + str(wh) + '}'
-          client_mqtt.publish(config['mqtt']['topic'], data_mqtt)
+      try:
+        client_sp = sunnyportal.client.Client(config['sunnyportal']['email'], config['sunnyportal']['password'])
+        for plant in client_sp.get_plants():
+          data = plant.last_data_exact(date.today() + timedelta(days=1))
+          wh = data.hour.absolute if not data.hour is None else None
+          print(f"{datetime.now()}: wh={wh} plant={plant.name}")
+          if not wh is None:
+            data_mqtt = '{"plant": "' + plant.name + '", "prod_wh": ' + str(wh) + '}'
+            client_mqtt.publish(config['mqtt']['topic'], data_mqtt)
+      except Exception as e:
+        print(f"{datetime.now()}: Exception:  {str(e)}")
+        exit(1)
       seconds_delay = random.randrange(config['period']['min'], config['period']['max'])
       time.sleep(seconds_delay)
 
-if __name__ == "__main__":
-  main()
+main()
