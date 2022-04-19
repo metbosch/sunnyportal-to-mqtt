@@ -15,7 +15,7 @@ def main():
     config = json.load(config_file)
     client_mqtt = mqtt_client.Client()
     client_mqtt.username_pw_set(config['mqtt']['username'], config['mqtt']['password'])
-    client_mqtt.connect(config['mqtt']['host'], config['mqtt']['port'])
+    client_mqtt.connect(config['mqtt']['host'], port=config['mqtt']['port'], keepalive=config['mqtt']['keepalive'])
     while True:
       print(f"{datetime.now()}: Starting sunnyportal information retrievement")
       try:
@@ -26,7 +26,9 @@ def main():
           print(f"{datetime.now()}: wh={wh} plant={plant.name}")
           if not wh is None:
             data_mqtt = '{"plant": "' + plant.name + '", "prod_wh": ' + str(wh) + '}'
-            client_mqtt.publish(config['mqtt']['topic'], data_mqtt)
+            (mqtt_err, mqtt_mid) = client_mqtt.publish(config['mqtt']['topic'], data_mqtt)
+            if mqtt_err != 0:
+              print(f"{datetime.now()}: MQTT publish failed:  {str(mqtt_err)}, {config['mqtt']['topic']}, {data_mqtt}")
       except Exception as e:
         print(f"{datetime.now()}: Exception:  {str(e)}")
         exit(1)
